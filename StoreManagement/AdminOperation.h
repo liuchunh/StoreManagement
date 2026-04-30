@@ -46,7 +46,9 @@ int ResetPassword(Account t_account);
 
 int GetGoodsInfo();
 
-static char* PrintGoodsType(int type);
+char* PrintGoodsType(int type);
+
+int SaveAccountInfo();
 
 int SaveGoodsInfo();
 

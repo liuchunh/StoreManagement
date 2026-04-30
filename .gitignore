@@ -28,3 +28,5 @@ copilot*/
 v17/
 v18/
 *.ipch
+
+*.bat

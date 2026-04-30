@@ -94,7 +94,7 @@ int ResetPassword(Account t_account) {
 int GetGoodsInfo() {
     FILE* fp = fopen("goodsinfo.csv", "r");
     if (fp == NULL) {
-        printf("Error Occurred when opening file.\n");
+        // printf("Error Occurred when opening file.\n");
         return FAIL_TO_OPEN_FILE;
     }
     char buffer[256];
@@ -199,6 +199,9 @@ int SaveGoodsInfo() {
                 break;
         }
         char buffer[256];
+        if (goods[i].remaining == 0) {
+            continue; // 跳过库存为0的商品 不保存到文件中
+		}
         sprintf(buffer, "%s,%.2f,%u,%s,%s,%s\n",
                 goods[i].name,
                 goods[i].price,
@@ -221,7 +224,7 @@ int SaveGoodsInfo() {
  * @param type 
  * @return char* 
  */
-static char* PrintGoodsType(int type) {
+char* PrintGoodsType(int type) {
     switch (type) {
         case FOOD:
             return "Food";
@@ -234,6 +237,7 @@ static char* PrintGoodsType(int type) {
         default:
             return "Unknown";
     }
+    return "";
 }
 
 /**
@@ -319,9 +323,9 @@ int SellGoods() {
 }
 
 void ManageGoods() {
-
+    return;
 }
 
 void InventoryStatistics() {
-
+    return;
 }

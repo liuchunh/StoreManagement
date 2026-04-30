@@ -71,7 +71,7 @@ int Login() {
 int main() {
     Init();
 
-    // <------------------ 登录 ------------------->
+    // <------------------- 登录 ------------------->
     int LoginRes = Login();
     if (LoginRes == UNEXISTED_ACCOUNT){ // 身份确定
         printf("登录失败! 请确定账号是否存在!\n");
@@ -85,7 +85,7 @@ int main() {
         printf("登录成功! 欢迎回来!\n");
     }
 
-	// <------------------ 登录成功 ------------------->
+	// <------------------ 登录成功 ------------------>
 
     //IsAdmin = true; // 直接设置为管理员身份 以便测试管理员功能
     //memcpy(AccountName, "admin", 6); // 直接设置账号名 以便测试管理员功能
@@ -93,7 +93,7 @@ int main() {
     Sleep(2000);
     system("cls");
     
-    // <----------------- 获取输入 ------------------>
+    // <------------------ 获取输入 ------------------>
     printf("当前用户: %s\n", AccountName);
     ShowMenu(IsAdmin);
     int choice = 0;
@@ -145,7 +145,7 @@ int main() {
                 int res = AddAccount(NewAccount);
 
                 if (res == 0) {
-                    printf("%s账户添加成功!\n", NewAccount.accountName);
+                    printf("%s 账户添加成功!\n", NewAccount.accountName);
                 }
                 else if (res == FAIL_TO_OPEN_FILE) {
                     printf("文件打开失败!\n");
@@ -237,7 +237,24 @@ int main() {
             case 7:
             {
                 int result = GetGoodsInfo();
-                if (result == FAIL_TO_OPEN_FILE) {
+                if (result == 1) {
+					printf("读取商品信息成功!\n");
+                    for (int i = 0; i < GoodsCount; i++) {
+                        if (goods[i].remaining == 0) {
+                            continue; // 跳过库存为0的商品
+                        }
+                        printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                               i + 1,
+                               goods[i].name,
+                               goods[i].price,
+                               goods[i].remaining,
+                               goods[i].factory,
+                               goods[i].brand,
+                               PrintGoodsType(goods[i].type)
+                        );
+					}
+                }
+                else if (result == FAIL_TO_OPEN_FILE) {
                     printf("打开文件失败! 请检查是否具有读取文件的权限或文件是否存在.\n");
                 }
                 else if (result == TOO_MUCH_GOODS) {
