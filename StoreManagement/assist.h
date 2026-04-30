@@ -14,11 +14,15 @@
 #include <ctype.h>
 #include <string.h>
 
+#define NOT_DIGIT -1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void toLower(char* str);
+
+int str2int(const char* str);
 
 #ifdef __cplusplus
 }

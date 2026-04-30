@@ -1,3 +1,5 @@
-﻿  main.c
-D:\Executive\vs\StoreManagement\StoreManagement\main.c(177,17): warning C4013: “SaveAccountInfo”未定义；假设外部返回 int
+﻿  AdminOperation.c
+D:\Executive\vs\StoreManagement\StoreManagement\AdminOperation.c(32,2): warning C4013: “SaveAccountInfo”未定义；假设外部返回 int
+D:\Executive\vs\StoreManagement\StoreManagement\AdminOperation.c(270,28): warning C4018: “>”: 有符号/无符号不匹配
+D:\Executive\vs\StoreManagement\StoreManagement\AdminOperation.c(274,35): warning C4018: “<”: 有符号/无符号不匹配
   StoreManagement.vcxproj -> D:\Executive\vs\StoreManagement\x64\Debug\StoreManagement.exe

@@ -7,6 +7,11 @@
 # visual studio binary files
 *.exe
 *.pdb
+*.obj
+*.tlog
+*.ilk
+*.odb
+*.lib
 
 # visual studio cache files
 *.suo

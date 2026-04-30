@@ -14,3 +14,23 @@ void toLower(char* str) {
         }
     }
 }
+
+/**
+ * @brief 将 str 转换为数字
+ * 
+ * @param str 
+ * @return int 返回值
+ * 
+ * @note 如果 str 中包含非数字字符, 则返回 NOT_DIGIT
+ */
+int str2int(const char* str) {
+    int len = strlen(str);
+    int num = 0;
+    for (int i = 0; i < len; i++) {
+        if (!isdigit(str[i])) {
+            return NOT_DIGIT;
+        }
+        num = num * 10 + (str[i] - '0');
+    }
+    return num;
+}

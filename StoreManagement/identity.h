@@ -17,7 +17,8 @@
 #include <stdbool.h>
 
 #define LOGIN_SUCCESSFULLY 1
-#define LOGIN_FAILED 0
+#define WRONG_PASSWORD -1
+#define UNEXISTED_ACCOUNT -2
 
 extern const char ADMIN_ACCOUNT_NAME[];
 extern const char ADMIN_PASSWORD[];
