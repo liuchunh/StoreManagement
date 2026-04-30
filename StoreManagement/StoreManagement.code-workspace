@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../../Learning/mzxx/FinalProject"
+		}
+	],
+    "settings": {
+        "chat.tools.terminal.autoApprove": {
+            "gcc": true
+        }
+    }
+}

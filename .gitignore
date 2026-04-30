@@ -1,0 +1,25 @@
+# vscode settings
+.vscode/
+
+# test csv file
+*.csv
+
+# visual studio binary files
+*.exe
+*.pdb
+
+# visual studio cache files
+*.suo
+*.db
+
+# vs extension files
+*.vsix
+*.vsidx
+
+# copilot chat cache
+copilot*/
+
+# library files
+v17/
+v18/
+*.ipch
