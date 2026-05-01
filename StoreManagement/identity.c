@@ -20,17 +20,37 @@ void GetAccountInfo() {
         return;
     }
 
+	bool ModifyAdminPassword = false; // 是否需要修改管理员密码的标志
     while (AccountCount < 100 &&
            fscanf(fp, " %99[^,],%99s",
                   account[AccountCount].accountName, account[AccountCount].password) == 2) {
         account[AccountCount].accountName[strcspn(account[AccountCount].accountName, "\n")] = '\0'; // 去除输入末尾的换行符
         if (strcmp(account[AccountCount].accountName, ADMIN_ACCOUNT_NAME) == 0) {
+            if (strcmp(account[AccountCount].password, ADMIN_PASSWORD) != 0) {
+				// 管理员账号的密码不正确，强制设置为管理员密码
+				ModifyAdminPassword = true;
+				printf("Warning: Wrong password for admin account found in file, resetting to default password.\n");
+				strcpy(account[AccountCount].password, ADMIN_PASSWORD);
+            }
             account[AccountCount].isAdmin = true;
         }
         AccountCount++;
     }
-
     fclose(fp);
+
+    if (ModifyAdminPassword) {
+        // 如果需要修改管理员密码，保存修改后的账号信息到文件
+        FILE* fp_write = fopen("account.csv", "w");
+        if (fp_write == NULL) {
+            printf("无法打开账户文件进行写入!\n");
+            fclose(fp);
+            return;
+        }
+        for (int i = 0; i < AccountCount; i++) {
+            fprintf(fp_write, "%s,%s\n", account[i].accountName, account[i].password);
+        }
+        fclose(fp_write);
+	}
 }
 
 /**

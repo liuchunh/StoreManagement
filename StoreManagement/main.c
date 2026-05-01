@@ -11,6 +11,7 @@ char* AccountName;
 char* Password;
 Good goods[100];
 int GoodsCount = 0;
+char str[4] = { 0 };
 
 void Init() {
     /* --------- 申请内存 ---------*/
@@ -19,7 +20,7 @@ void Init() {
 
     /* ----------- 变量初始化 -----------*/
     GoodsCount = 0;
-	memset(goods, 0, 100 * sizeof(Good));
+	memset(goods, 0, GOODS_MAX * sizeof(Good));
 	memset(account, 0, 100 * sizeof(Account));
     memset(AccountName, 0, 100 * sizeof(char));
     memset(Password, 0, 100 * sizeof(char));
@@ -45,7 +46,7 @@ int Login() {
 			return LOGIN_SUCCESSFULLY;
         }
         else { // 是管理员账号 但是密码错误
-			return UNEXISTED_ACCOUNT;
+			return WRONG_PASSWORD;
         }
     }
     else { // 不是管理员账号
@@ -72,26 +73,26 @@ int main() {
     Init();
 
     // <------------------- 登录 ------------------->
-    int LoginRes = Login();
-    if (LoginRes == UNEXISTED_ACCOUNT){ // 身份确定
-        printf("登录失败! 请确定账号是否存在!\n");
-        return EXIT_FAILURE;
-    }
-    else if (LoginRes == WRONG_PASSWORD) {
-        printf("登录失败! 请确定密码是否正确!\n");
-        return EXIT_FAILURE;
-	}
-    else {
-        printf("登录成功! 欢迎回来!\n");
-    }
+ //   int LoginRes = Login();
+ //   if (LoginRes == UNEXISTED_ACCOUNT){ // 身份确定
+ //       printf("登录失败! 请确定账号是否存在!\n");
+ //       return EXIT_FAILURE;
+ //   }
+ //   else if (LoginRes == WRONG_PASSWORD) {
+ //       printf("登录失败! 请确定密码是否正确!\n");
+ //       return EXIT_FAILURE;
+	//}
+ //   else {
+ //       printf("登录成功! 欢迎回来!\n");
+ //   }
+
+    /*Sleep(2000);
+    system("cls");*/
 
 	// <------------------ 登录成功 ------------------>
 
-    //IsAdmin = true; // 直接设置为管理员身份 以便测试管理员功能
-    //memcpy(AccountName, "admin", 6); // 直接设置账号名 以便测试管理员功能
-
-    Sleep(2000);
-    system("cls");
+    IsAdmin = true; // 直接设置为管理员身份 以便测试管理员功能
+    memcpy(AccountName, "admin", 6); // 直接设置账号名 以便测试管理员功能
     
     // <------------------ 获取输入 ------------------>
     printf("当前用户: %s\n", AccountName);
@@ -144,7 +145,7 @@ int main() {
 
                 int res = AddAccount(NewAccount);
 
-                if (res == 0) {
+                if (res == OPERATION_SUCCESSFUL) {
                     printf("%s 账户添加成功!\n", NewAccount.accountName);
                 }
                 else if (res == FAIL_TO_OPEN_FILE) {
@@ -214,13 +215,254 @@ int main() {
                     printf("文件中没有有效的商品数据!\n");
 				}
                 // else
-				// 剩下的输出内容在 SellGoods 函数中已经处理了 这里不需要再处理了
+				// 这里不再处理剩下的情况 因为 SellGoods 函数内部已经处理了剩余的情况 
+                // 包括打印售卖结果和更新商品信息文件等操作
                 break;
             }
             case 4:
             {
-                ManageGoods();
-                break;
+                int result = GetGoodsInfo();
+                if (result == FAIL_TO_OPEN_FILE) {
+                     printf("打开文件失败! 请检查是否具有读取文件的权限或文件是否存在.\n");
+					 return EXIT_FAILURE;
+                }
+                else if (result == TOO_MUCH_GOODS) {
+                     printf("商品数量过多，文件中只读取了前100个商品. 当前数量: %d\n", GoodsCount);
+                     return EXIT_FAILURE;
+                }
+                else if (result == NO_VALID_DATA) {
+                     printf("文件中没有有效的商品数据!\n");
+                     return EXIT_FAILURE;
+                }
+				printf("请选择修改方式: \n    1. 增加商品\n    2. 删除商品\n    3. 查询商品信息\n    4. 修改商品信息\n    5. 退出\n");
+                int choice = GetIntegerInput();
+                if (choice == NOT_DIGIT || choice < 1 || choice > 5) {
+                    printf("无效的输入! 请输入数字!\n");
+					break;
+                }
+                if (choice == 5) {
+                    break; // 退出修改商品信息
+				}
+                switch (choice) {
+                    case 1:
+                    {   
+                        Good good = { 0 };
+						printf("请输入商品名: \n");
+						scanf("%s", good.name);
+						printf("请输入商品价格: \n");
+						scanf("%lf", &good.price);
+						printf("请输入商品剩余数量: \n");
+						scanf("%u", &good.remaining);
+                        if (good.remaining <= 0) {
+                            printf("商品剩余数量不合法!\n");
+                            break;
+						}
+                        printf("请输入商品生产厂家: \n");
+						scanf("%s", good.factory);
+						printf("请输入商品品牌: \n");
+						scanf("%s", good.brand);
+						printf("请输入商品类型: \n    1. 食品\n    2. 化妆品\n    3. 日用品\n    4. 饮料\n");
+						scanf("%s", str);
+						int type = str2int(str);
+                        if (type < 1 || type > 4 || type == NOT_DIGIT) {
+                            printf("无效的商品类型!\n");
+                            break;
+                        }
+						good.type = type;
+                        int res = AddGoods(good);
+                        switch (res) {
+                            case OPERATION_SUCCESSFUL:
+                                printf("商品添加成功!\n");
+                                break;
+                            case TOO_MUCH_GOODS:
+                                printf("无法添加更多商品! 商品数量已达上限 100.\n");
+                                break;
+                            case REPEAT_GOOD:
+                                printf("商品 '%s' 已存在但信息不同! 请检查输入的商品信息是否正确.\n", good.name);
+                                break;
+                            case FAIL_TO_OPEN_FILE:
+                                printf("文件打开失败!\n");
+								break;
+                            default:
+                                break;
+                        }
+                        break;
+                    }
+                    case 2:
+                    {
+                        char name[100] = { 0 };
+						printf("请输入要删除的商品名称: \n");
+						scanf("%s", name);
+                        int res = DeleteGoods(name);
+                        if (res == OPERATION_SUCCESSFUL) {
+                            printf("商品删除成功!\n");
+						}
+                        else if (res == NO_VALID_DATA) {
+                            printf("商品不存在!\n");
+                        }
+                        break;
+                    }
+                    case 3:
+                    {
+                        // 因为查询商品时需要提供的参数类型不固定 这里直接写在 main 里面了
+						printf("请输入查询条件: \n    1. 按类型查询\n    2. 按名称查询\n    3. 按生产厂家查询\n");
+                        int choice = 0;
+						int cond = 0; // condition 要查询的信息
+                        char condition[100] = { 0 };
+                        choice = GetIntegerInput();
+                        if (choice == NOT_DIGIT) {
+                            printf("无效的输入! 请输入数字!\n");
+                        }
+                        if (choice < 1 || choice > 3) {
+                            printf("无效的选择!\n");
+                            break;
+						}
+						bool Match = false;
+                        // 按类型查询
+                        if (choice == 1) {
+                            printf("请输入要查询的商品类型: \n    1. 食品\n    2. 化妆品\n    3. 日用品\n    4. 饮料\n");
+							cond = GetIntegerInput();
+                            if (cond < 1 || cond > 4 || cond == NOT_DIGIT) {
+                                printf("无效的商品类型!\n");
+                                break;
+                            }
+
+                            for (int i = 0; i < GoodsCount; i++) {
+                                if (goods[i].remaining == 0) {
+                                    continue; // 跳过库存为0的商品
+                                }
+                                if (goods[i].type == cond) {
+                                    printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                           goods[i].sign,
+                                           goods[i].name,
+                                           goods[i].price,
+                                           goods[i].remaining,
+                                           goods[i].factory,
+                                           goods[i].brand,
+                                           PrintGoodsType(goods[i].type)
+                                    );
+                                    Match = true;
+                                }
+							}
+                            if (!Match) {
+                                printf("没有找到符合条件的商品!\n");
+                            }
+                        }
+						// 按名称查询
+                        else if (choice == 2) {
+                            printf("请输入要查询的商品名称: \n");
+							scanf("%s", condition);
+                            for (int i = 0; i < GoodsCount; i++) {
+                                if (goods[i].remaining == 0) {
+                                    continue; // 跳过库存为0的商品
+                                }
+                                if (strcmp(goods[i].name, condition) == 0) {
+                                    printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                           goods[i].sign,
+                                           goods[i].name,
+                                           goods[i].price,
+                                           goods[i].remaining,
+                                           goods[i].factory,
+                                           goods[i].brand,
+                                           PrintGoodsType(goods[i].type)
+                                    );
+                                    Match = true;
+                                }
+                            }
+
+                            if (!Match) {
+                                printf("没有找到符合条件的商品!\n");
+							}
+                        }
+                        else if (choice == 3) {
+							printf("请输入要查询的生产厂家: \n");
+                            scanf("%s", condition);
+                            for (int i = 0; i < GoodsCount; i++) {
+                                if (goods[i].remaining == 0) {
+                                    continue; // 跳过库存为0的商品
+                                }
+                                if (strcmp(goods[i].factory, condition) == 0) {
+                                    printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                           goods[i].sign,
+                                           goods[i].name,
+                                           goods[i].price,
+                                           goods[i].remaining,
+                                           goods[i].factory,
+                                           goods[i].brand,
+                                           PrintGoodsType(goods[i].type)
+                                    );
+                                    Match = true;
+                                }
+							}
+
+                            if (!Match) {
+                                printf("没有找到符合条件的商品!\n");
+							}
+						}
+                        break;
+                    }
+                    case 4:
+                    {
+                        int type = 0;
+						char name[100] = { 0 };
+						printf("请输入要修改的商品类型: \n    1. 食品\n    2. 化妆品\n    3. 日用品\n    4. 饮料\n");
+						type = GetIntegerInput();
+                        if (type < 1 || type > 5 || type == NOT_DIGIT) {
+                            printf("无效的商品类型!\n");
+                            break;
+						}
+
+                        bool Found = false;
+						printf("请输入要修改的商品名称: \n");
+						scanf("%s", name);
+
+                        for (int i = 0; i < GoodsCount; i++) {
+                            if (goods[i].remaining == 0) {
+                                continue; // 跳过库存为0的商品
+                            }
+                            if (goods[i].type == type && strcmp(goods[i].name, name) == 0) {
+								printf("请输入要修改的属性: \n    1. 名称\n    2. 价格\n    3. 生产厂家\n    4. 品牌\n");
+								choice = GetIntegerInput();
+                                if (choice == NOT_DIGIT || choice < 1 || choice > 4) {
+                                    printf("无效的输入! 请输入数字!\n");
+                                    break;
+								}
+								Found = true;
+								char newValue[100] = { 0 };
+                                double value = 0;
+                                if (choice == 1) {
+									printf("请输入新的名称: \n");
+                                    scanf("%s", newValue);
+									strcpy(goods[i].name, newValue);
+                                }
+                                else if (choice == 2) {
+                                    printf("请输入新的价格: \n");
+									scanf("%lf", &value);
+									goods[i].price = value;
+                                }
+                                else if (choice == 3) {
+                                    printf("请输入新的生产厂家: \n");
+									scanf("%s", newValue);
+									strcpy(goods[i].factory, newValue);
+                                }
+                                else if (choice == 4) {
+                                    printf("请输入新的品牌: \n");
+									scanf("%s", newValue);
+									strcpy(goods[i].brand, newValue);
+								}
+                                SaveGoodsInfo(); // 修改商品信息后保存至 goodsinfo.csv
+                            }
+                        }
+                        if (!Found) {
+                            printf("未找到符合条件的商品!\n");
+                        }
+					}
+                    default:
+                    {
+                        printf("无效的选择!\n");
+                        break;
+                    }
+                }
             }
             case 5:
             {
@@ -229,22 +471,26 @@ int main() {
             }
             case 6:
             {
-                if (SaveGoodsInfo() != 0) {
+				GetGoodsInfo(); // 获取最新的商品信息以便保存时不覆盖之前的信息
+                if (SaveGoodsInfo() != OPERATION_SUCCESSFUL) {
                     printf("保存商品信息失败! 请检查是否具有写入文件的权限.\n");
+                }
+                else {
+					printf("保存商品信息成功!\n");
                 }
                 break;
             }
             case 7:
             {
                 int result = GetGoodsInfo();
-                if (result == 1) {
+                if (result == OPERATION_SUCCESSFUL) {
 					printf("读取商品信息成功!\n");
                     for (int i = 0; i < GoodsCount; i++) {
                         if (goods[i].remaining == 0) {
                             continue; // 跳过库存为0的商品
                         }
                         printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
-                               i + 1,
+                               goods[i].sign,
                                goods[i].name,
                                goods[i].price,
                                goods[i].remaining,

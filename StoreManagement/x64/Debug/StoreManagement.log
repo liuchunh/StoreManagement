@@ -1,7 +1,2 @@
-﻿  AdminOperation.c
-D:\Executive\vs\StoreManagement\StoreManagement\AdminOperation.c(304,28): warning C4018: “>”: 有符号/无符号不匹配
-D:\Executive\vs\StoreManagement\StoreManagement\AdminOperation.c(308,35): warning C4018: “<”: 有符号/无符号不匹配
-  main.c
-  正在生成代码...
-x64\Debug\assist.obj : warning LNK4042: 对象被多次指定；已忽略多余的指定
+﻿  main.c
   StoreManagement.vcxproj -> D:\Executive\vs\StoreManagement\x64\Debug\StoreManagement.exe

@@ -30,7 +30,7 @@ int AddAccount(Account t_account) {
 	AccountCount++;
 
 	SaveAccountInfo();
-    return 0;
+    return OPERATION_SUCCESSFUL;
 }
 
 /*
@@ -99,7 +99,7 @@ int GetGoodsInfo() {
     }
     char buffer[256];
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-        if (GoodsCount >= 100) {
+        if (GoodsCount >= GOODS_MAX) {
             return TOO_MUCH_GOODS;
         }
         Good good = { 0 };
@@ -111,9 +111,11 @@ int GetGoodsInfo() {
                              good.factory,
                              good.brand,
                              type);
+		char buffer[100] = { 0 };
         // 表头过滤
-        toLower(good.name);
-        if (strcmp(good.name, "name") == 0) {
+		strcpy(buffer, good.name);
+        toLower(buffer);
+        if (strcmp(buffer, "name") == 0) {
             continue;
         }
 
@@ -135,7 +137,6 @@ int GetGoodsInfo() {
                good.brand,
                type); // 调试输出，查看解析的商品信息
         */
-
         toLower(type);
         if (strcmp(type, "food") == 0) {
             good.type = FOOD;
@@ -155,6 +156,7 @@ int GetGoodsInfo() {
         }
 
         goods[GoodsCount] = good;
+		goods[GoodsCount].sign = GoodsCount + 1; // 商品编号从1开始
         GoodsCount++;
     }
     if (GoodsCount == 0) {
@@ -178,7 +180,7 @@ int SaveGoodsInfo() {
         printf("Error Occurred when opening file.\n");
         return FAIL_TO_OPEN_FILE;
 	}
-
+    fprintf(fp, "Name, price, remaining, factory, brand, type\n");
     for (int i = 0; i < GoodsCount; i++) {
         char type[20] = { 0 };
         switch (goods[i].type) {
@@ -198,11 +200,11 @@ int SaveGoodsInfo() {
                 strcpy(type, "Unknown");
                 break;
         }
-        char buffer[256];
+        char buffer[256] = { 0 };
         if (goods[i].remaining == 0) {
             continue; // 跳过库存为0的商品 不保存到文件中
 		}
-        sprintf(buffer, "%s,%.2f,%u,%s,%s,%s\n",
+        sprintf(buffer, "%s, %.2f, %u, %s, %s, %s\n",
                 goods[i].name,
                 goods[i].price,
                 goods[i].remaining,
@@ -215,7 +217,7 @@ int SaveGoodsInfo() {
         }
     }
     fclose(fp);
-	return 0;
+	return OPERATION_SUCCESSFUL;
 }
 
 /**
@@ -247,6 +249,7 @@ char* PrintGoodsType(int type) {
  * @note 返回值: true (1) 表示成功, -1 (FAIL_TO_OPEN_FILE) 表示文件打开失败, -2 (TOO_MUCH_GOODS) 表示商品数量过多, -3 (NO_VALID_DATA) 表示没有有效数据, false (0) 表示输入无效
  */
 int SellGoods() {
+    memset(goods, 0, sizeof(Good));
     int result = GetGoodsInfo();
     if (result == FAIL_TO_OPEN_FILE) {
         // printf("打开文件失败! 请检查是否具有读取文件的权限或文件是否存在.\n");
@@ -267,7 +270,7 @@ int SellGoods() {
                 continue; // 跳过库存为0的商品
             }
             printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
-				   i + 1,
+				   goods[i].sign,
                    goods[i].name,
                    goods[i].price,
                    goods[i].remaining,
@@ -315,15 +318,77 @@ int SellGoods() {
     // 因为我们不是 GUI 程序 没有办法在出售后 收到 WM_QUIT / WM_CLOSE 消息来保存数据
 	// 所以我们只能在每次出售后 直接调用 SaveGoodsInfo 函数 来保存数据了
     // 这样虽然会增加一些磁盘 I/O 的开销 但是可以保证数据的安全性 不会因为程序异常退出而导致数据丢失
-    if (SaveGoodsInfo() != 0) {
+    if (SaveGoodsInfo() != OPERATION_SUCCESSFUL) {
         printf("保存商品信息失败! 请检查是否具有写入文件的权限.\n");
         return false;
 	}
     return true;
 }
 
-void ManageGoods() {
-    return;
+int AddGoods(Good good) {
+    if (GoodsCount >= GOODS_MAX) {
+        // printf("无法添加更多商品! 商品数量已达上限 100.\n");
+        return TOO_MUCH_GOODS;
+	}
+    
+	bool GoodExist = false;
+    for (int i = 0; i < GoodsCount; i++) {
+       if (strcmp(goods[i].name, good.name) == 0) {
+           if (strcmp(goods[i].factory, good.factory) == 0 && 
+               strcmp(goods[i].brand, good.brand) == 0 &&
+               goods[i].price == good.price &&
+               goods[i].type == good.type) {
+               // 商品已存在 更新价格和剩余数量
+               goods[i].remaining += good.remaining; // 累加剩余数量
+               GoodExist = true;
+               break;
+		   }
+           else {
+                // printf("商品 '%s' 已存在但信息不同! 请检查输入的商品信息是否正确.\n", good.name);
+				return REPEAT_GOOD; // 不添加重复商品 直接返回成功
+           }
+           break;
+       }
+   }
+
+   if (!GoodExist) {
+		// 商品不存在 添加新商品
+        strcpy(goods[GoodsCount].name, good.name);
+        goods[GoodsCount].price = good.price;
+        goods[GoodsCount].remaining = good.remaining;
+        goods[GoodsCount].type = good.type;
+        strcpy(goods[GoodsCount].factory, good.factory);
+        strcpy(goods[GoodsCount].brand, good.brand);
+
+        GoodsCount++;
+    }
+
+    if (SaveGoodsInfo() != OPERATION_SUCCESSFUL) {
+        // printf("保存商品信息失败! 请检查是否具有写入文件的权限.\n");
+        return FAIL_TO_WRITE_FILE;
+    }
+	return OPERATION_SUCCESSFUL;
+}
+
+int DeleteGoods(const char* name){
+	bool GoodFound = false;
+    for (int i = 0; i < GoodsCount; i++) {
+        if (strcmp(name, goods[i].name) == 0) {
+			// 将剩余数量设置为0 来表示删除了这个商品 这样在查询和保存时 就会自动跳过这个商品了
+            goods[i].remaining = 0;
+			GoodFound = true;
+        }
+    }
+	if (SaveGoodsInfo() != OPERATION_SUCCESSFUL) {
+        printf("保存商品信息失败! 请检查是否具有写入文件的权限.\n");
+        return FAIL_TO_WRITE_FILE;
+	}
+
+    if (!GoodFound) {
+        printf("商品不存在!\n");
+        return NO_VALID_DATA;
+	}
+	return OPERATION_SUCCESSFUL;
 }
 
 void InventoryStatistics() {

@@ -34,3 +34,10 @@ int str2int(const char* str) {
     }
     return num;
 }
+
+int GetIntegerInput() {
+    char str[100] = { 0 };
+    scanf("%s", str);
+    int num = str2int(str);
+    return num;
+}

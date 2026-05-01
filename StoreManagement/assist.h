@@ -24,6 +24,8 @@ void toLower(char* str);
 
 int str2int(const char* str);
 
+int GetIntegerInput();
+
 #ifdef __cplusplus
 }
 #endif

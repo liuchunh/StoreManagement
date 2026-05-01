@@ -22,7 +22,17 @@ enum goods_type {
     DRINKS
 };
 
+enum goods_properties {
+    NAME = 1,
+    PRICE,
+    REMAINING,
+    FACTORY,
+    BRAND,
+	TYPE
+};
+
 typedef struct __goods {
+    int sign;
     char name[50];
     double price;
     unsigned int remaining;
@@ -36,9 +46,14 @@ extern int GoodsCount;
 
 #define FAIL_TO_OPEN_FILE -1
 #define FAIL_TO_WRITE_FILE -2
-#define OPERATION_SUCCESSFUL 0
+
+#define OPERATION_SUCCESSFUL 1
+
 #define TOO_MUCH_GOODS -3
 #define NO_VALID_DATA -4
+#define REPEAT_GOOD -5
+
+#define GOODS_MAX 100
 
 int AddAccount(Account account);
 
@@ -54,7 +69,9 @@ int SaveGoodsInfo();
 
 int SellGoods();
 
-void ManageGoods();
+int AddGoods(Good good);
+
+int DeleteGoods(const char* name);
 
 void InventoryStatistics();
 
