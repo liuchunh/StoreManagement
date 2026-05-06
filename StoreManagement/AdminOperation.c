@@ -328,6 +328,14 @@ int SellGoods() {
     return true;
 }
 
+/**
+ * @brief 添加商品
+ * 
+ * @param good 要添加的商品信息
+ * @return int 
+ * 
+ * @note 返回值: 0 表示成功, -1 (TOO_MUCH_GOODS) 表示商品数量过多, -2 (REPEAT_GOOD) 表示商品已存在但信息不同, -3 (FAIL_TO_WRITE_FILE) 表示文件写入失败 (即商品信息保存失败)
+ */
 int AddGoods(Good good) {
     if (GoodsCount >= GOODS_MAX) {
         // printf("无法添加更多商品! 商品数量已达上限 100.\n");
@@ -372,7 +380,15 @@ int AddGoods(Good good) {
     }
 	return OPERATION_SUCCESSFUL;
 }
-
+    
+/**
+ * @brief 删除商品
+ * 
+ * @param name 要删除的商品名称
+ * @return int 
+ * 
+ * @note 返回值: 0 表示成功, -3 (FAIL_TO_WRITE_FILE) 表示文件写入失败
+ */
 int DeleteGoods(const char* name){
 	bool GoodFound = false;
     for (int i = 0; i < GoodsCount; i++) {

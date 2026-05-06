@@ -12,6 +12,10 @@ int AccountCount = 0;
 
 bool IsAdmin = false;
 
+/**
+ * @brief 从 account.csv 文件中读取账号信息并存储到内存中
+ * 
+ */
 void GetAccountInfo() {
     AccountCount = 0;
     FILE* fp = fopen("account.csv", "r");

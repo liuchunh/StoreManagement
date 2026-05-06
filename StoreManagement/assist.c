@@ -41,7 +41,6 @@ int str2int(const char* str) {
 /**
  * @brief 将 str 转换为数字
  *
- * @param str
  * @return int 返回值
  *
  * @note 如果 str 中包含非数字字符, 则返回 NOT_DIGIT
@@ -53,6 +52,13 @@ int GetIntegerInput() {
     return num;
 }
 
+/**
+ * @brief 将 str 转换为数字
+ * 
+ * @return double 
+ * 
+ * @note 如果 str 中包含非数字字符, 则返回 NOT_DIGIT
+ */
 double GetDoubleInput() {
     char str[20] = { 0 };
 	scanf("%s", str);
@@ -65,6 +71,17 @@ double GetDoubleInput() {
 	return atof(str);
 }
 
+/**
+ * @brief 指针函数, 用于 qsort 函数按照价格升序排序
+ * 
+ * @param a 
+ * @param b 
+ * @return int 
+ * 
+ * @note 函数返回值和参数类型不得修改!!!
+ * 
+ * @example qsort(goods, numGoods, sizeof(Good), PriceAscend); // #include <stdlib.h>
+ */
 int PriceAscend(const void* a, const void* b){
     Good* goodA = (Good*) a;
     Good* goodB = (Good*) b;
@@ -79,6 +96,15 @@ int PriceAscend(const void* a, const void* b){
 	}
 }
 
+/**
+ * @brief 指针函数, 用于 qsort 函数按照价格降序排序
+ * 
+ * @param a 
+ * @param b 
+ * @return int 
+ * 
+ * @example qsort(goods, numGoods, sizeof(Good), PriceDescend); // #include <stdlib.h>
+ */
 int PriceDescend(const void* a, const void* b){
     Good* goodA = (Good*) a;
     Good* goodB = (Good*) b;
@@ -93,6 +119,15 @@ int PriceDescend(const void* a, const void* b){
     }
 }
 
+/**
+ * @brief 指针函数, 用于 qsort 函数按照剩余数量升序排序
+ * 
+ * @param a 
+ * @param b 
+ * @return int 
+ * 
+ * @example qsort(goods, numGoods, sizeof(Good), RemainingAscend);
+ */
 int RemainingAscend(const void* a, const void* b){
     Good* goodA = (Good*) a;
     Good* goodB = (Good*) b;
@@ -107,6 +142,15 @@ int RemainingAscend(const void* a, const void* b){
     }
 }
 
+/**
+ * @brief 指针函数, 用于 qsort 函数按照剩余数量降序排序
+ * 
+ * @param a 
+ * @param b 
+ * @return int 
+ * 
+ * @example qsort(goods, numGoods, sizeof(Good), RemainingDescend);
+ */
 int RemainingDescend(const void* a, const void* b){
     Good* goodA = (Good*) a;
     Good* goodB = (Good*) b;

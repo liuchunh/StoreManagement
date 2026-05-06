@@ -95,8 +95,11 @@ int main() {
 	// <------------------ 登录成功 ------------------>
 
     IsAdmin = true; // 直接设置为管理员身份 以便测试管理员功能
-    memcpy(AccountName, "admin", 6); // 直接设置账号名 以便测试管理员功能
+    strcpy(AccountName, "admin"); // 直接设置账号名 以便测试管理员功能
     
+    IsAdmin = false;
+    strcpy(AccountName, "User");
+
     // <------------------ 获取输入 ------------------>
     printf("当前用户: %s\n", AccountName);
     ShowMenu(IsAdmin);
@@ -717,8 +720,102 @@ int main() {
             }
             case 2:
             {
-                QueryInfo();
-                break;
+				GetGoodsInfo();
+                // COPY FROM ADMIN OPERATION
+                printf("请输入查询条件: \n    1. 按类型查询\n    2. 按名称查询\n    3. 按生产厂家查询\n");
+                int choice = 0;
+                int cond = 0; // condition 要查询的信息
+                char condition[100] = { 0 };
+                choice = GetIntegerInput();
+                if (choice == NOT_DIGIT) {
+                    printf("无效的输入! 请输入数字!\n");
+                }
+                if (choice < 1 || choice > 3) {
+                    printf("无效的选择!\n");
+                    break;
+                }
+                bool Match = false;
+                // 按类型查询
+                if (choice == 1) {
+                    printf("请输入要查询的商品类型: \n    1. 食品\n    2. 化妆品\n    3. 日用品\n    4. 饮料\n");
+                    cond = GetIntegerInput();
+                    if (cond < 1 || cond > 4 || cond == NOT_DIGIT) {
+                        printf("无效的商品类型!\n");
+                        break;
+                    }
+
+                    for (int i = 0; i < GoodsCount; i++) {
+                        if (goods[i].remaining == 0) {
+                            continue; // 跳过库存为0的商品
+                        }
+                        if (goods[i].type == cond) {
+                            printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                   goods[i].sign,
+                                   goods[i].name,
+                                   goods[i].price,
+                                   goods[i].remaining,
+                                   goods[i].factory,
+                                   goods[i].brand,
+                                   PrintGoodsType(goods[i].type)
+                            );
+                            Match = true;
+                        }
+                    }
+                    if (!Match) {
+                        printf("没有找到符合条件的商品!\n");
+                    }
+                }
+                // 按名称查询
+                else if (choice == 2) {
+                    printf("请输入要查询的商品名称: \n");
+                    scanf("%s", condition);
+                    for (int i = 0; i < GoodsCount; i++) {
+                        if (goods[i].remaining == 0) {
+                            continue; // 跳过库存为0的商品
+                        }
+                        if (strcmp(goods[i].name, condition) == 0) {
+                            printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                   goods[i].sign,
+                                   goods[i].name,
+                                   goods[i].price,
+                                   goods[i].remaining,
+                                   goods[i].factory,
+                                   goods[i].brand,
+                                   PrintGoodsType(goods[i].type)
+                            );
+                            Match = true;
+                        }
+                    }
+
+                    if (!Match) {
+                        printf("没有找到符合条件的商品!\n");
+                    }
+                }
+                else if (choice == 3) {
+                    printf("请输入要查询的生产厂家: \n");
+                    scanf("%s", condition);
+                    for (int i = 0; i < GoodsCount; i++) {
+                        if (goods[i].remaining == 0) {
+                            continue; // 跳过库存为0的商品
+                        }
+                        if (strcmp(goods[i].factory, condition) == 0) {
+                            printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                   goods[i].sign,
+                                   goods[i].name,
+                                   goods[i].price,
+                                   goods[i].remaining,
+                                   goods[i].factory,
+                                   goods[i].brand,
+                                   PrintGoodsType(goods[i].type)
+                            );
+                            Match = true;
+                        }
+                    }
+
+                    if (!Match) {
+                        printf("没有找到符合条件的商品!\n");
+                    }
+                }
             }
             case 3:
             {
