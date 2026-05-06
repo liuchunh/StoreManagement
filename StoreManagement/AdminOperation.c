@@ -266,6 +266,9 @@ int SellGoods() {
     else {
         printf("商品信息读取成功. \n总商品数量: %d\n", GoodsCount);
         for (int i = 0; i < GoodsCount; i++) {
+            if (i >= GOODS_MAX) {
+                break;
+            }
             if (goods[i].remaining == 0) {
                 continue; // 跳过库存为0的商品
             }
@@ -389,8 +392,4 @@ int DeleteGoods(const char* name){
         return NO_VALID_DATA;
 	}
 	return OPERATION_SUCCESSFUL;
-}
-
-void InventoryStatistics() {
-    return;
 }

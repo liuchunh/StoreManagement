@@ -11,6 +11,9 @@ char* AccountName;
 char* Password;
 Good goods[100];
 int GoodsCount = 0;
+
+Good passGoods[100]; // 统计库存商品时 符合要求的商品会被存入 passGoods 数组 以便后续操作
+int passCount = 0;
 char str[4] = { 0 };
 
 void Init() {
@@ -86,8 +89,8 @@ int main() {
  //       printf("登录成功! 欢迎回来!\n");
  //   }
 
-    /*Sleep(2000);
-    system("cls");*/
+ //   Sleep(2000);
+ //   system("cls");
 
 	// <------------------ 登录成功 ------------------>
 
@@ -466,7 +469,189 @@ int main() {
             }
             case 5:
             {
-                InventoryStatistics();
+				GetGoodsInfo(); // 获取最新的商品信息以便统计时不覆盖之前的信息
+                int choice = 0;
+				printf("请选择统计方式: \n    1. 按价格统计\n    2. 按库存量统计\n    3. 按生产厂家统计\n");
+				choice = GetIntegerInput();
+                if (choice == NOT_DIGIT || choice < 1 || choice > 3) {
+                    printf("无效的输入! 请输入数字!\n");
+                    break;
+                }
+
+                if (choice == 1) {
+					printf("请输入价格上限: ");
+                    double high = 0, low = 0;
+					high = GetDoubleInput();
+                    if (high == NOT_DIGIT || high <= 0) {
+                        printf("无效的输入!\n");
+                        break;
+					}
+					printf("请输入价格下限: ");
+					low = GetDoubleInput();
+                    if (low == NOT_DIGIT || low < 0 || low > high) {
+                        printf("无效的输入!\n");
+                        break;
+					}
+
+                    for (int i = 0; i < GoodsCount; i++) {
+                        if (goods[i].remaining == 0) {
+                            continue; // 跳过库存为0的商品
+                        }
+                        if (goods[i].price >= low && goods[i].price <= high) {
+							passGoods[passCount].sign = goods[i].sign;
+                            passGoods[passCount].price = goods[i].price;
+                            strcpy(passGoods[passCount].name, goods[i].name);
+                            strcpy(passGoods[passCount].factory, goods[i].factory);
+                            passGoods[passCount].remaining = goods[i].remaining;
+                            strcpy(passGoods[passCount].brand, goods[i].brand);
+                            passGoods[passCount].type = goods[i].type;
+                            passCount++;
+                        }
+                    }
+                    if (passCount == 0) {
+                        printf("没有找到符合条件的商品!\n");
+					}
+                    else {
+                        // 按照价格排序
+                        if (passCount > 1) {
+                            int sort = 0;
+                            printf("升序还是降序? \n    1. 升序\n    2. 降序\n");
+                            sort = GetIntegerInput();
+                            if (sort == NOT_DIGIT || sort < 1 || sort > 2) {
+                                printf("无效的输入! 请输入数字!\n");
+                                break;
+                            }
+                            if (sort == 1) {
+                                qsort(passGoods, passCount, sizeof(Good), PriceAscend);
+                            }
+                            else {
+                                qsort(passGoods, passCount, sizeof(Good), PriceDescend);
+                            }
+                        }
+
+                        printf("价格在 %.2lf 到 %.2lf 之间的商品有: \n", low, high);
+                        for (int i = 0; i < passCount; i++) {
+                            printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                   passGoods[i].sign,
+                                   passGoods[i].name,
+                                   passGoods[i].price,
+                                   passGoods[i].remaining,
+                                   passGoods[i].factory,
+                                   passGoods[i].brand,
+                                   PrintGoodsType(passGoods[i].type)
+							);
+                        }
+                    }
+                }
+                else if (choice == 2){
+					printf("请输入库存量上限: ");
+					int high = 0, low = 0;
+                    high = GetIntegerInput();
+                    if (high == NOT_DIGIT || high <= 0) {
+                        printf("无效的输入!\n");
+                        break;
+                    }
+					printf("请输入库存量下限: ");
+                    low = GetIntegerInput();
+                    if (low == NOT_DIGIT || low < 0 || low > high) {
+                        printf("无效的输入!\n");
+                        break;
+                    }
+
+                    for (int i = 0; i < GoodsCount; i++) {
+                        if (goods[i].remaining == 0) {
+                            continue; // 跳过库存为0的商品
+                        }
+						if (goods[i].remaining >= low && goods[i].remaining <= high) {
+                            passGoods[passCount].sign = goods[i].sign;
+                            passGoods[passCount].price = goods[i].price;
+                            strcpy(passGoods[passCount].name, goods[i].name);
+                            strcpy(passGoods[passCount].factory, goods[i].factory);
+                            passGoods[passCount].remaining = goods[i].remaining;
+                            strcpy(passGoods[passCount].brand, goods[i].brand);
+                            passGoods[passCount].type = goods[i].type;
+                            passCount++;
+                        }
+                    }
+                    if (passCount == 0) {
+                        printf("没有找到符合条件的商品!\n");
+                    }
+                    else {
+                        if (passCount > 1) {
+                            int sort = 0;
+                            printf("升序还是降序? \n    1. 升序\n    2. 降序\n");
+                            sort = GetIntegerInput();
+                            if (sort == NOT_DIGIT || sort < 1 || sort > 2) {
+                                printf("无效的输入! 请输入数字!\n");
+                                break;
+                            }
+
+                            printf("库存量在 %d 到 %d 之间的商品有: \n", low, high);
+                            if (sort == 1)
+                                qsort(passGoods, passCount, sizeof(Good), RemainingAscend);
+                            else
+                                qsort(passGoods, passCount, sizeof(Good), RemainingDescend);
+                        }
+
+                        for (int i = 0; i < passCount; i++) {
+                            printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                   passGoods[i].sign,
+                                   passGoods[i].name,
+                                   passGoods[i].price,
+                                   passGoods[i].remaining,
+                                   passGoods[i].factory,
+                                   passGoods[i].brand,
+								   PrintGoodsType(passGoods[i].type)
+                                   );
+                        }
+                    }
+                }
+				else if (choice == 3) {
+					// 按照生产厂家统计时 先统计有哪些生产厂家 然后让用户选择要查看的生产厂家 最后列出该生产厂家的所有商品
+                    int Factory[100] = { 0 }; // 存储生产厂家在 goods 数组中的索引
+					int factoryCount = 0; // 生产厂家数量
+                    bool exists = false;
+                    for (int i = 0; i < GoodsCount; i++) {
+                        for (int j = 0; j < factoryCount; j++) {
+                            if (strcmp(goods[i].factory, goods[Factory[j]].factory) == 0) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) {
+                            Factory[factoryCount++] = i;
+                        }
+                        exists = false;
+                    }
+
+					printf("共有 %d 个生产厂家: \n", factoryCount);
+                    for (int i = 0; i < factoryCount; i++) {
+                        printf("    %d. %s\n", i + 1, goods[ Factory[i] ].factory);
+					}
+					printf("请输入要查看的生产厂家编号: \n");
+					int sign = GetIntegerInput();
+                    if (sign == NOT_DIGIT || sign < 1 || sign > factoryCount) {
+                        printf("无效的输入! 请输入数字!\n");
+                        break;
+					}
+                    printf("生产厂家 '%s' 的商品有: \n", goods[ Factory[sign - 1] ].factory);
+                    for (int i = 0; i < GoodsCount; i++) {
+                        if (goods[i].remaining == 0) {
+                            continue; // 跳过库存为0的商品
+                        }
+                        if (strcmp(goods[i].factory, goods[Factory[sign - 1]].factory) == 0) {
+                            printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                                   goods[i].sign,
+                                   goods[i].name,
+                                   goods[i].price,
+                                   goods[i].remaining,
+                                   goods[i].factory,
+                                   goods[i].brand,
+                                   PrintGoodsType(goods[i].type)
+                            );
+                        }
+                    }
+                }
                 break;
             }
             case 6:
@@ -511,6 +696,11 @@ int main() {
                 }
                 break;
             }
+            case 8:
+            {
+                printf("Exit!\n");
+                break;
+            }
             default:
             {
                 printf("无效的选择!\n");
@@ -542,6 +732,9 @@ int main() {
             }
         }
     }
+
+	free(AccountName);
+	free(Password);
 
     return EXIT_SUCCESS;
 }

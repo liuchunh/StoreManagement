@@ -20,11 +20,21 @@
 extern "C" {
 #endif
 
-void toLower(char* str);
+	void toLower(char* str);
 
-int str2int(const char* str);
+	int str2int(const char* str);
 
-int GetIntegerInput();
+	int GetIntegerInput();
+
+	double GetDoubleInput();
+	
+	int PriceAscend(const void* a, const void* b);
+
+	int PriceDescend(const void* a, const void* b);
+
+	int RemainingAscend(const void* a, const void* b);
+
+	int RemainingDescend(const void* a, const void* b);
 
 #ifdef __cplusplus
 }

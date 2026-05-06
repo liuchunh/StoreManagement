@@ -73,6 +73,4 @@ int AddGoods(Good good);
 
 int DeleteGoods(const char* name);
 
-void InventoryStatistics();
-
 // TODO: 补充一个自定义的 printf 函数, 用于输出日志

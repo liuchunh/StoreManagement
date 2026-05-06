@@ -24,13 +24,10 @@
     <ClCompile Include="identity.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="assist.h">
-      <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="assist.c">
+    <ClCompile Include="UserOperation.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="UserOperation.c">
+    <ClCompile Include="assist.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -42,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="identity.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="assist.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

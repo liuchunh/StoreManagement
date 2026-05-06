@@ -102,6 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,17 +126,18 @@
   <ItemGroup>
     <ClCompile Include="AdminOperation.c" />
     <ClCompile Include="assist.c" />
-    <ClCompile Include="assist.h" />
     <ClCompile Include="identity.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdminOperation.h" />
+    <ClInclude Include="assist.h" />
     <ClInclude Include="identity.h" />
-    <ClCompile Include="UserOperation.c">
-      <FileType>CppCode</FileType>
-    </ClCompile>
+    <ClCompile Include="UserOperation.c" />
     <ClInclude Include="UserOperation.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Remove="assist.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

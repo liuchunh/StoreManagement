@@ -21,8 +21,9 @@
 *.vsix
 *.vsidx
 
-# copilot chat cache
+# copilot chat cache and log file
 copilot*/
+*.tlog
 
 # library files
 v17/
