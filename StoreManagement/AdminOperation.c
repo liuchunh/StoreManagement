@@ -46,6 +46,7 @@ int SaveAccountInfo() {
         printf("Error Occurred when opening file.\n");
         return FAIL_TO_OPEN_FILE;
     }
+
     for (int i = 0; i < AccountCount; i++) {
         char buffer[256];
         sprintf(buffer, "%s,%s\n", account[i].accountName, account[i].password);
@@ -55,7 +56,7 @@ int SaveAccountInfo() {
         }
     }
     fclose(fp);
-    return 0;
+    return OPERATION_SUCCESSFUL;
 }
 
 /**
@@ -68,7 +69,15 @@ int SaveAccountInfo() {
  */
 int ResetPassword(Account t_account) {
     bool AccountFound = false;
+    char LAccountName[100] = { 0 };
+    memcpy(LAccountName, t_account.accountName, sizeof(t_account.accountName));
+    toLower(LAccountName); 
+
     for (int i = 0; i < AccountCount; i++) {
+        char LAccountNameFile[100] = { 0 };
+        strcpy(LAccountNameFile, account[i].accountName);
+        toLower(LAccountNameFile);
+
         if (strcmp(account[i].accountName, t_account.accountName) == 0) {
 			memset(account[i].password, 0, sizeof(account[i].password));
 			printf("请输入新密码：");
@@ -78,11 +87,10 @@ int ResetPassword(Account t_account) {
         }
 	}
     if (!AccountFound) {
-        printf("账号不存在!\n");
         return UNEXISTED_ACCOUNT;
     }
 
-	return 0;
+	return OPERATION_SUCCESSFUL;
 }
 
 /**
@@ -97,7 +105,14 @@ int GetGoodsInfo() {
         // printf("Error Occurred when opening file.\n");
         return FAIL_TO_OPEN_FILE;
     }
-    char buffer[256];
+
+	// 如果不清空的话 会导致数据重复累积 
+    // 因为 GetGoodsInfo 可能会被调用多次 每次调用都会从文件中读取数据并存储到 goods 数组中 
+    // 如果不清空的话 就会在原有数据的基础上继续添加新的数据 导致数据重复累积
+	memset(goods, 0, sizeof(Good));
+    GoodsCount = 0;
+    
+    char buffer[256] = { 0 };
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
         if (GoodsCount >= GOODS_MAX) {
             return TOO_MUCH_GOODS;
@@ -370,7 +385,7 @@ int AddGoods(Good good) {
         goods[GoodsCount].type = good.type;
         strcpy(goods[GoodsCount].factory, good.factory);
         strcpy(goods[GoodsCount].brand, good.brand);
-
+		goods[GoodsCount].sign = GoodsCount + 1;
         GoodsCount++;
     }
 

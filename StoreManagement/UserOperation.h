@@ -15,8 +15,6 @@
 #include <stdlib.h>
 #include "identity.h"
 
-void ChangeAccountInfo();
+int ChangeAccountPassword(Account account, const char* NewPassword);
 
-void QueryInfo();
-
-void BuyGoods();
+int BuyGoods(int type, const char* goodsName, int amount);

@@ -76,41 +76,41 @@ int main() {
     Init();
 
     // <------------------- 登录 ------------------->
- //   int LoginRes = Login();
- //   if (LoginRes == UNEXISTED_ACCOUNT){ // 身份确定
- //       printf("登录失败! 请确定账号是否存在!\n");
- //       return EXIT_FAILURE;
- //   }
- //   else if (LoginRes == WRONG_PASSWORD) {
- //       printf("登录失败! 请确定密码是否正确!\n");
- //       return EXIT_FAILURE;
-	//}
- //   else {
- //       printf("登录成功! 欢迎回来!\n");
- //   }
+    //int LoginRes = Login();
+    //if (LoginRes == UNEXISTED_ACCOUNT){ // 身份确定
+    //   printf("登录失败! 请确定账号是否存在!\n");
+    //   return EXIT_FAILURE;
+    //}
+    //else if (LoginRes == WRONG_PASSWORD) {
+    //   printf("登录失败! 请确定密码是否正确!\n");
+    //   return EXIT_FAILURE;
+    //}
+    //else {
+    //   printf("登录成功! 欢迎回来!\n");
+    //}
 
- //   Sleep(2000);
- //   system("cls");
+    //Sleep(2000);
+    //system("cls");
 
 	// <------------------ 登录成功 ------------------>
 
-    IsAdmin = true; // 直接设置为管理员身份 以便测试管理员功能
-    strcpy(AccountName, "admin"); // 直接设置账号名 以便测试管理员功能
+    //IsAdmin = true; // 直接设置为管理员身份 以便测试管理员功能
+    //strcpy(AccountName, "admin"); // 直接设置账号名 以便测试管理员功能
     
     IsAdmin = false;
     strcpy(AccountName, "User");
 
+OPERATION:
     // <------------------ 获取输入 ------------------>
     printf("当前用户: %s\n", AccountName);
     ShowMenu(IsAdmin);
     int choice = 0;
     printf("请输入您的选择: ");
-    char temp = getchar();
-    if (!isdigit(temp)) {
+    choice = GetIntegerInput();
+    if (choice == NOT_DIGIT) {
         printf("无效的输入! 请输入数字!\n");
-        return EXIT_FAILURE;
+		return EXIT_FAILURE;
 	}
-	choice = temp - '0'; // 将字符数字转换为整数
 
     while (getchar() != '\n'); // 清除输入缓冲区中的换行符 因为 GetAccountName 用的是 fgets 函数 如果不加的话会导致 accountName 为换行符
 
@@ -167,15 +167,21 @@ int main() {
             {
 				Account TempAccount;
 				memset(&TempAccount, 0, sizeof(Account));
+                printf("当前已有账户: \n");
+                for (int i = 0; i < AccountCount; i++) {
+                    printf("    %d. %s\n", i + 1, account[i].accountName);
+				}
 
                 printf("请输入账号名：");
 				GetAccountName(TempAccount.accountName);
                 
 				// 不允许修改管理员账号的密码
-                char t[100] = { 0 };
-				memcpy(t, TempAccount.accountName, sizeof(TempAccount.accountName));
-				toLower(t); // 将输入的账号名转换为小写字母 以便进行不区分大小写的比较
-                if (strcmp(t, ADMIN_ACCOUNT_NAME) == 0) {
+                char LAccountName[100] = { 0 };
+				memcpy(LAccountName, TempAccount.accountName, sizeof(TempAccount.accountName));
+				toLower(LAccountName); // 将输入的账号名转换为小写字母 以便进行不区分大小写的比较
+
+                // ADMIN_ACCOUNT_NAME 是纯小写字母
+                if (strcmp(LAccountName, ADMIN_ACCOUNT_NAME) == 0) {
                     printf("不允许修改管理员账号!\n");
                     break;
 				}
@@ -185,14 +191,19 @@ int main() {
                 printf("\n");
 
 				bool VerifyPassed = false;
+
                 for (int i = 0; i < AccountCount; i++) {
-                    if (strcmp(account[i].accountName, TempAccount.accountName) == 0) { // 账号存在
+                    char storedName[100] = { 0 };
+                    strcpy(storedName, account[i].accountName);
+                    toLower(storedName);
+
+                    if (strcmp(storedName, LAccountName) == 0) {
                         if (strcmp(account[i].password, TempAccount.password) != 0) {
                             // 密码错误
                             printf("密码错误!\n");
                             return EXIT_FAILURE;
                         }
-                        memcpy(account[i].password, TempAccount.password, sizeof(TempAccount.password));
+                        strcpy(account[i].password, TempAccount.password);
                         VerifyPassed = true;
                         break;
                     }
@@ -203,9 +214,31 @@ int main() {
                     break;
 				}
 
+                printf("\n");
 				// 验证通过 允许修改密码
-                ResetPassword(TempAccount);
-                SaveAccountInfo(); // 修改密码后保存账号信息至 account.csv
+                int res1 = ResetPassword(TempAccount);
+                if (res1 == UNEXISTED_ACCOUNT) {
+                    printf("账号不存在!\n");
+                    break;
+				}
+                int res2 = SaveAccountInfo(); // 修改密码后保存账号信息至 account.csv
+                if (res2 == FAIL_TO_OPEN_FILE) {
+                    printf("文件打开失败!\n");
+                    break;
+                }
+                else if (res2 == FAIL_TO_WRITE_FILE) {
+                    printf("文件写入失败!\n");
+                    break;
+                }
+
+                if (res1 == OPERATION_SUCCESSFUL && res2 == OPERATION_SUCCESSFUL) {
+					printf("密码修改成功!\n");
+                    break;
+                }
+                else {
+					printf("密码修改失败!\n");
+                    break;
+                }
                 break;
             }
             case 3:
@@ -469,10 +502,14 @@ int main() {
                         break;
                     }
                 }
+                break;
             }
             case 5:
             {
 				GetGoodsInfo(); // 获取最新的商品信息以便统计时不覆盖之前的信息
+                passCount = 0;
+                memset(passGoods, 0, sizeof(passGoods));
+
                 int choice = 0;
 				printf("请选择统计方式: \n    1. 按价格统计\n    2. 按库存量统计\n    3. 按生产厂家统计\n");
 				choice = GetIntegerInput();
@@ -697,12 +734,13 @@ int main() {
                 else if (result == NO_VALID_DATA) {
                     printf("文件中没有有效的商品数据!\n");
                 }
+                system("pause");
                 break;
             }
             case 8:
             {
                 printf("Exit!\n");
-                break;
+                return EXIT_SUCCESS;
             }
             default:
             {
@@ -710,12 +748,48 @@ int main() {
                 break;
             }
         }
+        Sleep(2000);
+		system("cls");
+        goto OPERATION;
     }
     else {
         switch (choice) {
             case 1:
             {
-                ChangeAccountInfo();
+                // change account info
+				Account TempAccount;
+				memset(&TempAccount, 0, sizeof(Account));
+				strcpy(TempAccount.accountName, AccountName);
+				printf("请输入旧密码：");
+				GetAccountPassword(TempAccount.password);
+				printf("\n");
+				char newPassword[100] = { 0 };
+				printf("请输入新密码：");
+				GetAccountPassword(newPassword);
+                printf("\n");
+
+				int result = ChangeAccountPassword(TempAccount, newPassword);
+                if (result == OPERATION_SUCCESSFUL) {
+                    printf("密码修改成功!\n");
+                }
+                else if (result == WRONG_PASSWORD) {
+                    printf("原密码错误! 修改密码失败!\n");
+                }
+                else if (result == FAIL_TO_OPEN_FILE) {
+                    printf("文件打开失败! 请检查是否具有读取文件的权限或文件是否存在.\n");
+                }
+                else if (result == FAIL_TO_WRITE_FILE) {
+                    printf("文件写入失败! 请检查是否具有写入文件的权限.\n");
+				}
+                else if (result == UNEXISTED_ACCOUNT) {
+                    printf("账号不存在! 修改密码失败!\n");
+				}
+                else if (result == NOT_ALLOWED_OPERATION) {
+					printf("不允许的操作! 修改密码失败!\n");
+                }
+                else if (result == SAME_PASSWORD) {
+                    printf("新密码与旧密码相同!\n");
+				}
                 break;
             }
             case 2:
@@ -816,11 +890,56 @@ int main() {
                         printf("没有找到符合条件的商品!\n");
                     }
                 }
+                break;
             }
             case 3:
             {
-                BuyGoods();
+				printf("请输入要购买的商品名称: \n");
+				char* GoodsName = (char*) malloc(100 * sizeof(char));
+				scanf("%s", GoodsName);
+				printf("请输入要购买的商品类型: \n    1. 食物\n    2. 化妆品\n    3. 日用品\n    4. 饮料\n");
+                int GoodsType = 0;
+				GoodsType = GetIntegerInput();
+                if (GoodsType < 1 || GoodsType > 4 || GoodsType == NOT_DIGIT) {
+                    printf("无效的商品类型!\n");
+                    free(GoodsName);
+                    break;
+                }
+                int amount = 0;
+                printf("请输入要购买的商品数量: \n");
+				amount = GetIntegerInput();
+                if (amount == NOT_DIGIT || amount <= 0) {
+                    printf("无效的输入! 请输入数字!\n");
+                    free(GoodsName);
+                    break;
+				}
+
+                int result = BuyGoods(GoodsType, GoodsName, amount);
+                switch (result) {
+                    case OPERATION_SUCCESSFUL:
+                        printf("购买成功!\n");
+                        break;
+                    case NOT_ENOUGH_GOODS:
+                        printf("库存不足!\n");
+                        break;
+                    case NO_VALID_DATA:
+                        printf("没有找到符合条件的商品!\n");
+                        break;
+                    case FAIL_TO_WRITE_FILE:
+                        printf("写入文件失败!\n");
+                        break;
+                    default:
+                        printf("未知错误!\n");
+                        break;
+                }
+
+                free(GoodsName);
                 break;
+            }
+            case 4:
+            {
+                printf("Exit!\n");
+                return EXIT_SUCCESS;
             }
             default:
             {
@@ -828,6 +947,9 @@ int main() {
                 break;
             }
         }
+        Sleep(2000);
+		system("cls");
+        goto OPERATION;
     }
 
 	free(AccountName);

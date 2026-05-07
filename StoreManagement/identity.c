@@ -29,6 +29,9 @@ void GetAccountInfo() {
            fscanf(fp, " %99[^,],%99s",
                   account[AccountCount].accountName, account[AccountCount].password) == 2) {
         account[AccountCount].accountName[strcspn(account[AccountCount].accountName, "\n")] = '\0'; // 去除输入末尾的换行符
+   //     if (strcmp(account[AccountCount].accountName, "account")) {
+			//continue; // 跳过表头行
+   //     }
         if (strcmp(account[AccountCount].accountName, ADMIN_ACCOUNT_NAME) == 0) {
             if (strcmp(account[AccountCount].password, ADMIN_PASSWORD) != 0) {
 				// 管理员账号的密码不正确，强制设置为管理员密码

@@ -52,6 +52,7 @@ extern int GoodsCount;
 #define TOO_MUCH_GOODS -3
 #define NO_VALID_DATA -4
 #define REPEAT_GOOD -5
+#define NOT_ENOUGH_GOODS -10
 
 #define GOODS_MAX 100
 

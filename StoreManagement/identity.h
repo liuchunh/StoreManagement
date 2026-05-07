@@ -18,7 +18,9 @@
 
 #define LOGIN_SUCCESSFULLY 1
 #define WRONG_PASSWORD -1
-#define UNEXISTED_ACCOUNT -2
+#define UNEXISTED_ACCOUNT -7
+#define NOT_ALLOWED_OPERATION -8
+#define SAME_PASSWORD -9
 
 extern const char ADMIN_ACCOUNT_NAME[];
 extern const char ADMIN_PASSWORD[];
