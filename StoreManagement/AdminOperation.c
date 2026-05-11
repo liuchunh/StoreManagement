@@ -12,19 +12,6 @@
  * @note 返回值: 0 表示成功, -1 (FAIL_TO_OPEN_FILE) 表示文件打开失败, -2 (FAIL_TO_WRITE_FILE) 表示文件写入失败
 */
 int AddAccount(Account t_account) {
-    /*FILE* fp = fopen("account.csv", "a+");
-    if (fp == NULL) {
-        printf("Error Occurred when opening file.\n");
-        return FAIL_TO_OPEN_FILE;
-    }
-    char buffer[256];
-    sprintf(buffer, "\n%s,%s", account.accountName, account.password);
-    if (fwrite(buffer, sizeof(char), strlen(buffer), fp) != strlen(buffer)) {
-        fclose(fp);
-        return FAIL_TO_WRITE_FILE;
-    }
-    fclose(fp);*/
-
 	memcpy(account[AccountCount].accountName, t_account.accountName, sizeof(t_account.accountName));
 	memcpy(account[AccountCount].password, t_account.password, sizeof(t_account.password));
 	AccountCount++;
@@ -68,20 +55,22 @@ int SaveAccountInfo() {
  * @note 返回值: 0 表示成功, -1 (UNEXISTED_ACCOUNT) 表示账号不存在
  */
 int ResetPassword(Account t_account) {
-    bool AccountFound = false;
     char LAccountName[100] = { 0 };
     memcpy(LAccountName, t_account.accountName, sizeof(t_account.accountName));
     toLower(LAccountName); 
+
+    bool AccountFound = false;
 
     for (int i = 0; i < AccountCount; i++) {
         char LAccountNameFile[100] = { 0 };
         strcpy(LAccountNameFile, account[i].accountName);
         toLower(LAccountNameFile);
 
-        if (strcmp(account[i].accountName, t_account.accountName) == 0) {
+		// 账号名不区分大小写 但是密码区分大小写
+        if (strcmp(LAccountNameFile, LAccountName) == 0) {
 			memset(account[i].password, 0, sizeof(account[i].password));
-			printf("请输入新密码：");
-            GetAccountPassword(account[i].password);
+			// 重置密码为默认密码
+            strcpy(account[i].password, DEFAULT_PASSWORD);
             AccountFound = true;
             break;
         }
@@ -423,4 +412,26 @@ int DeleteGoods(const char* name){
         return NO_VALID_DATA;
 	}
 	return OPERATION_SUCCESSFUL;
+}
+
+void GoodsCopy(Good* dst, const Good src) {
+    dst->sign = src.sign;
+    strncpy(dst->name, src.name, sizeof(dst->name) - 1);
+    dst->name[sizeof(dst->name) - 1] = '\0';
+    dst->price = src.price;
+    dst->remaining = src.remaining;
+    strncpy(dst->factory, src.factory, sizeof(dst->factory) - 1);
+    dst->factory[sizeof(dst->factory) - 1] = '\0';
+    strncpy(dst->brand, src.brand, sizeof(dst->brand) - 1);
+    dst->brand[sizeof(dst->brand) - 1] = '\0';
+    dst->type = src.type;
+}
+
+bool GoodsEqual(const Good* a, const Good* b) {
+    return strcmp(a->name, b->name) == 0 &&
+        a->price == b->price &&
+        a->remaining == b->remaining &&
+        strcmp(a->factory, b->factory) == 0 &&
+        strcmp(a->brand, b->brand) == 0 &&
+        a->type == b->type;
 }

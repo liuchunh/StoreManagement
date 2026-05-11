@@ -74,4 +74,8 @@ int AddGoods(Good good);
 
 int DeleteGoods(const char* name);
 
+void GoodsCopy(Good* dst, const Good src);
+
+bool GoodsEqual(const Good* a, const Good* b);
+
 // TODO: 补充一个自定义的 printf 函数, 用于输出日志

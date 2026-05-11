@@ -6,6 +6,7 @@ const int BACKSPACE = 8; // 退格键的ASCII码
 const int ENTER = 13; // 回车键的ASCII码
 const char ADMIN_ACCOUNT_NAME[] = "admin";
 const char ADMIN_PASSWORD[] = "123456";
+const char DEFAULT_PASSWORD[] = "123456";
 
 Account account[100] = { 0 };
 int AccountCount = 0;

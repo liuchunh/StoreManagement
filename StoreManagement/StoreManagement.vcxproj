@@ -133,7 +133,9 @@
     <ClInclude Include="AdminOperation.h" />
     <ClInclude Include="assist.h" />
     <ClInclude Include="identity.h" />
+    <ClCompile Include="NodeList.c" />
     <ClCompile Include="UserOperation.c" />
+    <ClInclude Include="NodeList.h" />
     <ClInclude Include="UserOperation.h" />
   </ItemGroup>
   <ItemGroup>

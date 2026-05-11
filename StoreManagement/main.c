@@ -4,7 +4,7 @@
 #include "assist.h"
 #include "UserOperation.h"
 #include "AdminOperation.h"
-#include <stdlib.h>
+#include "NodeList.h"
 #include <windows.h>
 
 char* AccountName;
@@ -74,6 +74,7 @@ int Login() {
 
 int main() {
     Init();
+	Node* head = NULL; // 商品链表的头指针
 
     // <------------------- 登录 ------------------->
     //int LoginRes = Login();
@@ -196,7 +197,7 @@ OPERATION:
                     char storedName[100] = { 0 };
                     strcpy(storedName, account[i].accountName);
                     toLower(storedName);
-
+                    
                     if (strcmp(storedName, LAccountName) == 0) {
                         if (strcmp(account[i].password, TempAccount.password) != 0) {
                             // 密码错误
@@ -209,7 +210,7 @@ OPERATION:
                     }
                 }
 
-                if (!VerifyPassed) {
+                if (VerifyPassed == false) {
                     printf("账号不存在!\n");
                     break;
 				}
@@ -894,9 +895,7 @@ OPERATION:
             }
             case 3:
             {
-				printf("请输入要购买的商品名称: \n");
 				char* GoodsName = (char*) malloc(100 * sizeof(char));
-				scanf("%s", GoodsName);
 				printf("请输入要购买的商品类型: \n    1. 食物\n    2. 化妆品\n    3. 日用品\n    4. 饮料\n");
                 int GoodsType = 0;
 				GoodsType = GetIntegerInput();
@@ -905,8 +904,48 @@ OPERATION:
                     free(GoodsName);
                     break;
                 }
+				GetGoodsInfo(); // 获取最新的商品信息以便购买时不覆盖之前的信息
+
+				bool HasGoods = false; // 判断当前商品是否有符合条件的
+                for (int i = 0; i < GoodsCount; i++) {
+                    if (goods[i].type == GoodsType && goods[i].remaining > 0) {
+                        printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
+                               goods[i].sign,
+                               goods[i].name,
+                               goods[i].price,
+                               goods[i].remaining,
+                               goods[i].factory,
+							   goods[i].brand,
+                               PrintGoodsType(goods[i].type)
+                        );
+						HasGoods = true;
+                    }
+				}
+
+                if (!HasGoods) {
+                    printf("没有找到符合条件的商品!\n");
+                    free(GoodsName);
+                    break;
+                }
+
+                printf("请输入要购买商品的序号: \n");
+                int sign = 0;
+				sign = GetIntegerInput();
+                if (sign == NOT_DIGIT || sign < 1 || sign > GoodsCount) {
+                    printf("无效的输入!\n");
+                    free(GoodsName);
+                    break;
+				}
+                if (goods[sign - 1].type != GoodsType) {
+                    printf("编号与商品类型不匹配!\n");
+                    free(GoodsName);
+					break;
+                }
+
+                strcpy(GoodsName, goods[sign - 1].name);
+
                 int amount = 0;
-                printf("请输入要购买的商品数量: \n");
+                printf("请输入要购买的数量: \n");
 				amount = GetIntegerInput();
                 if (amount == NOT_DIGIT || amount <= 0) {
                     printf("无效的输入! 请输入数字!\n");
@@ -952,6 +991,7 @@ OPERATION:
         goto OPERATION;
     }
 
+    Free(head);
 	free(AccountName);
 	free(Password);
 

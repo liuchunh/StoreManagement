@@ -24,6 +24,7 @@
 
 extern const char ADMIN_ACCOUNT_NAME[];
 extern const char ADMIN_PASSWORD[];
+extern const char DEFAULT_PASSWORD[];
 
 extern bool IsAdmin;
 

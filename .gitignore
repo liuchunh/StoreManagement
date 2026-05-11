@@ -1,8 +1,10 @@
 # vscode settings
 .vscode/
 
-# test csv file
+# Debug Files
 *.csv
+*.bat
+*.txt
 
 # visual studio binary files
 *.exe
@@ -29,5 +31,3 @@ copilot*/
 v17/
 v18/
 *.ipch
-
-*.bat

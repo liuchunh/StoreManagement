@@ -30,6 +30,9 @@
     <ClCompile Include="assist.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="NodeList.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdminOperation.h">
@@ -42,6 +45,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="assist.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeList.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
