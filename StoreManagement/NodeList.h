@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * @file NodeList.h
  * @author Ma Xuanxuan
@@ -10,13 +8,11 @@
  * @copyright Copyright (c) 2026
  * 
  */
+#pragma once
 
 #include "AdminOperation.h"
 
-typedef struct _goods_node {
-    Good value;
-    struct _goods_node* next;
-} Node;
+extern Node* head;
 
 void UpdateBelowSign(Node* head, int num);
 
@@ -28,4 +24,4 @@ Node* DeleteByName(Node* head, const char* name);
 
 void Print(Node* head);
 
-void Free(Node* head);
+void Clear(Node** head);

@@ -41,6 +41,15 @@ typedef struct __goods {
     int type;
 } Good;
 
+/*
+	这本来应该在 NodeList.h 中定义的
+    但是会导致循环依赖
+*/
+typedef struct _goods_node {
+    Good value;
+    struct _goods_node* next;
+} Node;
+
 extern Good goods[100];
 extern int GoodsCount;
 
@@ -60,7 +69,7 @@ int AddAccount(Account account);
 
 int ResetPassword(Account t_account);
 
-int GetGoodsInfo();
+int GetGoodsInfo(Node** head);
 
 char* PrintGoodsType(int type);
 

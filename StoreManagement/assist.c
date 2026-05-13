@@ -12,6 +12,11 @@
 void toLower(char* str) {
     int len = strlen(str);
     for (int i = 0; i < len; i++) {
+        if (isspace(str[i]))
+            continue;
+        if (!isalpha(str[i]))
+            continue;
+
         if (isupper(str[i])) {
             str[i] = tolower(str[i]);
         }

@@ -3,7 +3,6 @@
 void Insert(Node** head, Good value) {
     Node* NewNode = (Node*) malloc(sizeof(Node));
     if (NewNode == NULL) {
-        // 分配内存失败，直接返回，不做插入
         return;
     }
     GoodsCopy(&NewNode->value, value);
@@ -11,70 +10,72 @@ void Insert(Node** head, Good value) {
     if (*head == NULL) {
         *head = NewNode;
         NewNode->value.sign = 1;
+        GoodsCount = 1;
     }
     else {
-        Node* temp = *head;
-        while (temp->next != NULL) {
-            temp = temp->next;
+        Node* node = *head;
+        while (node->next != NULL) {
+            node = node->next;
         }
-        temp->next = NewNode;
-        NewNode->value.sign = temp->value.sign + 1;
+        node->next = NewNode;
+        NewNode->value.sign = node->value.sign + 1;
+		GoodsCount++;
     }
 }
 
 Node* Delete(Node* head, Good value) {
-    Node* temp = head;
+    Node* node = head;
     Node* prev = NULL;
-    if (temp != NULL && GoodsEqual(&temp->value, &value)) {
-        head = temp->next;
+    if (node != NULL && GoodsEqual(&node->value, &value)) {
+        head = node->next;
         UpdateBelowSign(head, -1);
-        free(temp);
+        free(node);
         return head;
     }
-    while (temp != NULL && !GoodsEqual(&temp->value, &value)) {
-        prev = temp;
-        temp = temp->next;
+    while (node != NULL && !GoodsEqual(&node->value, &value)) {
+        prev = node;
+        node = node->next;
     }
-    if (temp == NULL) return head;
-    prev->next = temp->next;
+    if (node == NULL) return head;
+    prev->next = node->next;
     UpdateBelowSign(prev->next, -1); // 在删除一个节点后, 需要更新后面的序号
-    free(temp);
+    free(node);
     return head;
 }
 
 Node* DeleteByName(Node* head, const char* name) {
-    Node* temp = head;
+    Node* node = head;
     Node* prev = NULL;
-    if (temp != NULL && strcmp(temp->value.name, name) == 0) {
-        head = temp->next;
+    if (node != NULL && strcmp(node->value.name, name) == 0) {
+        head = node->next;
         UpdateBelowSign(head, -1);
-        free(temp);
+        free(node);
         return head;
     }
-    while (temp != NULL && strcmp(temp->value.name, name) != 0) {
-        prev = temp;
-        temp = temp->next;
+    while (node != NULL && strcmp(node->value.name, name) != 0) {
+        prev = node;
+        node = node->next;
     }
-    if (temp == NULL) return head;
-    prev->next = temp->next;
+    if (node == NULL) return head;
+    prev->next = node->next;
     UpdateBelowSign(prev->next, -1); // 在删除一个节点后, 需要更新后面的序号
-    free(temp);
+    free(node);
     return head;
 }
 
 void Print(Node* head) {
-    Node* temp = head;
-    while (temp != NULL) {
+    Node* node = head;
+    while (node != NULL) {
         printf("Sign: %d, Name: %s, Price: %.2f, Remaining: %u, Factory: %s, Brand: %s, Type: %s\n",
-               temp->value.sign,
-               temp->value.name,
-               temp->value.price,
-               temp->value.remaining,
-               temp->value.factory,
-               temp->value.brand,
-               PrintGoodsType(temp->value.type)
+               node->value.sign,
+               node->value.name,
+               node->value.price,
+               node->value.remaining,
+               node->value.factory,
+               node->value.brand,
+               PrintGoodsType(node->value.type)
         );
-        temp = temp->next;
+        node = node->next;
     }
     printf("\n");
 }
@@ -89,18 +90,18 @@ void Print(Node* head) {
  * 删除 -> UpdateBelowSign(head, -1)
  */
 void UpdateBelowSign(Node* head, int num) {
-    Node* temp = head;
-    while (temp != NULL) {
-        temp->value.sign += num;
-        temp = temp->next;
+    Node* node = head;
+    while (node != NULL) {
+        node->value.sign += num;
+        node = node->next;
     }
 }
 
-void Free(Node* head) {
-    Node* temp = NULL;
-    while (head != NULL) {
-        temp = head;
-        head = head->next;
-        free(temp);
+void Clear(Node** head) {
+    Node* node;
+    while (*head != NULL) {
+        node = *head;
+        *head = (*head)->next;
+        free(node);
     }
 }

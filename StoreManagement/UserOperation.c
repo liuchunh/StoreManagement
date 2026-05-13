@@ -4,15 +4,14 @@
 #include "identity.h" // 借用一下宏定义
 #include "AdminOperation.h"
 #include "assist.h"
+#include "NodeList.h"
 
 int ChangeAccountPassword(Account t_account, const char* NewPassword) {
 	if (strcmp(t_account.accountName, ADMIN_ACCOUNT_NAME) == 0) {
 		// 不允许修改管理员账号的密码
 		return NOT_ALLOWED_OPERATION;
 	}
-	if (strcmp(t_account.password, NewPassword) == 0) {
-		return SAME_PASSWORD;
-	}
+
 	int index = -1;
 	Account TempAccount = { 0 };
 	strcpy(TempAccount.accountName, t_account.accountName);
@@ -40,40 +39,35 @@ int ChangeAccountPassword(Account t_account, const char* NewPassword) {
 		return UNEXISTED_ACCOUNT;
 	}
 
+	if (strcmp(account[index].password, NewPassword) == 0) {
+		// 新密码和旧密码相同 不进行修改
+		return SAME_PASSWORD;
+	}
 	strcpy(account[index].password, NewPassword);
-	if (SaveAccountInfo() == OPERATION_SUCCESSFUL) {
-		return OPERATION_SUCCESSFUL;
-	}
-	else {
-		return FAIL_TO_WRITE_FILE;
-	}
+	return SaveAccountInfo();
 }
 
 int BuyGoods(int type, const char* goodsName, int amount) {
-	GetGoodsInfo();
+	GetGoodsInfo(&head);
 	char LGoodsName[50] = { 0 };
 	strcpy(LGoodsName, goodsName);
 	toLower(LGoodsName);
 
-	for (int i = 0; i < GoodsCount; i++) {
+	Node* CurrentNode = head;
+	while (head != NULL) {
 		char LTempGoodsName[50] = { 0 };
-		strcpy(LTempGoodsName, goods[i].name);
+		strcpy(LTempGoodsName, CurrentNode->value.name);
 		toLower(LTempGoodsName);
-
-		if (goods[i].type == type && strcmp(LTempGoodsName, LGoodsName) == 0) {
-			if (goods[i].remaining >= amount) {
-				goods[i].remaining -= amount;
-				if (SaveGoodsInfo() == OPERATION_SUCCESSFUL) {
-					return OPERATION_SUCCESSFUL;
-				}
-				else {
-					return FAIL_TO_WRITE_FILE;
-				}
+		if (CurrentNode->value.type == type && strcmp(LTempGoodsName, LGoodsName) == 0) {
+			if (CurrentNode->value.remaining >= amount) {
+				CurrentNode->value.remaining -= amount;
+				return SaveGoodsInfo();
 			}
 			else {
 				return NOT_ENOUGH_GOODS;
 			}
 		}
+		CurrentNode = CurrentNode->next;
 	}
 	return NO_VALID_DATA;
 }

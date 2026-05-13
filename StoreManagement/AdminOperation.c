@@ -2,6 +2,7 @@
 
 #include "AdminOperation.h"
 #include "assist.h"
+#include "NodeList.h"
 
 /*
  * @brief 向 account.csv 文件中添加一个账号
@@ -88,87 +89,75 @@ int ResetPassword(Account t_account) {
  * @return int 
  * @note 返回值: 0 表示成功, -1 (FAIL_TO_OPEN_FILE) 表示文件打开失败, -2 (TOO_MUCH_GOODS) 表示商品数量过多, -3 (NO_VALID_DATA) 表示没有有效数据
  */
-int GetGoodsInfo() {
+int GetGoodsInfo(Node** head) {
     FILE* fp = fopen("goodsinfo.csv", "r");
     if (fp == NULL) {
-        // printf("Error Occurred when opening file.\n");
+        printf("Error Occurred when opening file.\n");
         return FAIL_TO_OPEN_FILE;
     }
-
-	// 如果不清空的话 会导致数据重复累积 
-    // 因为 GetGoodsInfo 可能会被调用多次 每次调用都会从文件中读取数据并存储到 goods 数组中 
-    // 如果不清空的话 就会在原有数据的基础上继续添加新的数据 导致数据重复累积
-	memset(goods, 0, sizeof(Good));
-    GoodsCount = 0;
-    
-    char buffer[256] = { 0 };
+    if (head != NULL) { // 重新读取数据时 先清空链表
+        Clear(head);
+        GoodsCount = 0;
+    }
+    char buffer[256];
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-        if (GoodsCount >= GOODS_MAX) {
+        if (GoodsCount >= 100) {
             return TOO_MUCH_GOODS;
         }
-        Good good = { 0 };
+        Node* data = (Node*) malloc(sizeof(Node));
+        if (data == NULL) {
+			return NO_VALID_DATA; // 内存分配失败 可能是因为没有足够的内存了
+        }
         char type[20] = { 0 };
         int matched = sscanf(buffer, " %49[^,], %lf, %u, %49[^,], %49[^,], %s",
-                             good.name,
-                             &good.price,
-                             &good.remaining,
-                             good.factory,
-                             good.brand,
+                             data->value.name,
+                             &data->value.price,
+                             &data->value.remaining,
+                             data->value.factory,
+                             data->value.brand,
                              type);
-		char buffer[100] = { 0 };
-        // 表头过滤
-		strcpy(buffer, good.name);
-        toLower(buffer);
-        if (strcmp(buffer, "name") == 0) {
+        char nameLower[50];
+        strcpy(nameLower, data->value.name);
+        toLower(nameLower);
+        if (strcmp(nameLower, "name") == 0) {
+            free(data);
             continue;
         }
 
         if (matched == EOF) {
-            // printf("Warning: Failed to parse line, skipping line: %s", buffer);
+            free(data);
             continue;
         }
         if (matched != 6) {
-            // printf("Warning: Line format is incorrect, skipping line: %s", buffer);
+            free(data);
             continue;
         }
 
-        /*
-        printf("Parsed good: Name=%s, Price=%.2f, Remaining=%u, Factory=%s, Brand=%s, Type=%s\n",
-               good.name,
-               good.price,
-               good.remaining,
-               good.factory,
-               good.brand,
-               type); // 调试输出，查看解析的商品信息
-        */
+        data->value.sign = GoodsCount + 1;
         toLower(type);
         if (strcmp(type, "food") == 0) {
-            good.type = FOOD;
+            data->value.type = FOOD;
         }
         else if (strcmp(type, "cosmetics") == 0) {
-            good.type = COSMETICS;
+            data->value.type = COSMETICS;
         }
         else if (strcmp(type, "daily_necessities") == 0) {
-            good.type = DAILY_NECESSITIES;
+            data->value.type = DAILY_NECESSITIES;
         }
         else if (strcmp(type, "drinks") == 0) {
-            good.type = DRINKS;
+            data->value.type = DRINKS;
         }
         else {
-            // printf("Warning: Invalid type '%s' for good '%s', skipping line: %s", type, good.name, buffer);
-            continue; // 无效的类型，跳过
+            free(data);
+            continue;
         }
 
-        goods[GoodsCount] = good;
-		goods[GoodsCount].sign = GoodsCount + 1; // 商品编号从1开始
+        Insert(head, data->value);
         GoodsCount++;
-    }
-    if (GoodsCount == 0) {
-        // printf("Warning: No valid goods found in file.\n");
-        return NO_VALID_DATA;
+        free(data);
     }
     fclose(fp);
-    return true;
+    return OPERATION_SUCCESSFUL;
 }
 
 /**
@@ -179,15 +168,16 @@ int GetGoodsInfo() {
  * @note 返回值: 0 表示成功, -1 (FAIL_TO_OPEN_FILE) 表示文件打开失败, -2 (FAIL_TO_WRITE_FILE) 表示文件写入失败
  */
 int SaveGoodsInfo() {
-	FILE* fp = fopen("goodsinfo.csv", "w");
+    FILE* fp = fopen("goodsinfo.csv", "w");
     if (fp == NULL) {
         printf("Error Occurred when opening file.\n");
         return FAIL_TO_OPEN_FILE;
-	}
+    }
     fprintf(fp, "Name, price, remaining, factory, brand, type\n");
-    for (int i = 0; i < GoodsCount; i++) {
+    Node* node = head;
+    while (node != NULL) {
         char type[20] = { 0 };
-        switch (goods[i].type) {
+        switch (node->value.type) {
             case FOOD:
                 strcpy(type, "Food");
                 break;
@@ -205,23 +195,26 @@ int SaveGoodsInfo() {
                 break;
         }
         char buffer[256] = { 0 };
-        if (goods[i].remaining == 0) {
+        if (node->value.remaining == 0) {
+            node = node->next;
             continue; // 跳过库存为0的商品 不保存到文件中
-		}
+        }
+        // write good info to file
         sprintf(buffer, "%s, %.2f, %u, %s, %s, %s\n",
-                goods[i].name,
-                goods[i].price,
-                goods[i].remaining,
-                goods[i].factory,
-                goods[i].brand,
+                node->value.name,
+                node->value.price,
+                node->value.remaining,
+                node->value.factory,
+                node->value.brand,
                 type);
         if (fwrite(buffer, sizeof(char), strlen(buffer), fp) != strlen(buffer)) {
             fclose(fp);
             return FAIL_TO_WRITE_FILE;
         }
+        node = node->next;
     }
     fclose(fp);
-	return OPERATION_SUCCESSFUL;
+    return OPERATION_SUCCESSFUL;
 }
 
 /**
@@ -254,7 +247,7 @@ char* PrintGoodsType(int type) {
  */
 int SellGoods() {
     memset(goods, 0, sizeof(Good));
-    int result = GetGoodsInfo();
+    int result = GetGoodsInfo(&head);
     if (result == FAIL_TO_OPEN_FILE) {
         // printf("打开文件失败! 请检查是否具有读取文件的权限或文件是否存在.\n");
         return FAIL_TO_OPEN_FILE;
@@ -269,23 +262,27 @@ int SellGoods() {
 	}
     else {
         printf("商品信息读取成功. \n总商品数量: %d\n", GoodsCount);
-        for (int i = 0; i < GoodsCount; i++) {
-            if (i >= GOODS_MAX) {
-                break;
-            }
-            if (goods[i].remaining == 0) {
-                continue; // 跳过库存为0的商品
+		Node* CurrentNode = head;
+        while (CurrentNode != NULL) {
+            if (CurrentNode->value.remaining == 0) {
+                Node* temp = CurrentNode;
+                CurrentNode = CurrentNode->next;
+				Delete(head, temp->value); // 删除库存为0的商品
+				// free(temp); 节点已经在 Delete 函数中释放了 这里不需要再释放一次了
+                continue; // 跳过库存为0的商品 不显示在售卖列表中
             }
             printf("编号: %d, 名称: %s, 价格: %.2f, 剩余: %u, 厂家: %s, 品牌: %s, 类型: %s\n",
-				   goods[i].sign,
-                   goods[i].name,
-                   goods[i].price,
-                   goods[i].remaining,
-                   goods[i].factory,
-                   goods[i].brand,
-                   PrintGoodsType(goods[i].type)
+                   CurrentNode->value.sign,
+                   CurrentNode->value.name,
+                   CurrentNode->value.price,
+                   CurrentNode->value.remaining,
+                   CurrentNode->value.factory,
+                   CurrentNode->value.brand,
+                   PrintGoodsType(CurrentNode->value.type)
             );
-        }
+            CurrentNode = CurrentNode->next;
+		}
+        // free(CurrentNode);
     }
 
     char str[4] = { 0 };
@@ -304,32 +301,57 @@ int SellGoods() {
         return false;
 	}
 
+    Node* TargetGood = NULL;
+	Node* node = head;
+    while (node != NULL) {
+        if (sign == node->value.sign) {
+			TargetGood = node;
+			break;
+		}
+		node = node->next;
+    }
+
+    //free(node);
+    if (TargetGood == NULL) {
+        printf("未找到编号为 %d 的商品!\n", sign);
+        // free(TargetGood);
+        return NO_VALID_DATA;
+    }
+
+	// 因为 TargetGood 是一个指针 所以我们直接修改 TargetGood->value 就可以修改链表中的商品信息了
+	int remaining = TargetGood->value.remaining;
+
     printf("请输入要出售的数量: ");
 	scanf("%s", str);
     count = str2int(str);
     if (count == NOT_DIGIT) { // 输入的不是数字
         printf("输入的数量无效! 请输入一个有效的数字数量.\n");
+        // free(TargetGood);
         return false;
     }
-    if (count < 1 || count > goods[sign - 1].remaining) {
-        printf("输入的数量无效! 请输入一个介于 1 和 %u 之间的数量.\n", goods[sign - 1].remaining);
+    if (count < 1 || count > remaining) {
+        printf("输入的数量无效! 请输入一个介于 1 和 %u 之间的数量.\n", remaining);
+        // free(TargetGood);
         return false;
     }
-    if (goods[sign - 1].remaining < count) {
-        printf("库存不足! 当前剩余数量: %u\n", goods[sign - 1].remaining);
+    if (remaining < count) {
+        printf("库存不足! 当前剩余数量: %u\n", remaining);
+        // free(TargetGood);
         return false;
 	}
-    goods[sign - 1].remaining -= count;
-    printf("出售成功! 商品: %s, 数量: %d, 剩余: %u\n", goods[sign - 1].name, count, goods[sign - 1].remaining);
-	
+    TargetGood->value.remaining -= count;
+    printf("出售商品 %s 共 %d 个, 剩余 %u 个\n", TargetGood->value.name, count, TargetGood->value.remaining);
+
+    // free(TargetGood);
+
     // 因为我们不是 GUI 程序 没有办法在出售后 收到 WM_QUIT / WM_CLOSE 消息来保存数据
 	// 所以我们只能在每次出售后 直接调用 SaveGoodsInfo 函数 来保存数据了
     // 这样虽然会增加一些磁盘 I/O 的开销 但是可以保证数据的安全性 不会因为程序异常退出而导致数据丢失
-    if (SaveGoodsInfo() != OPERATION_SUCCESSFUL) {
+    if (SaveGoodsInfo(head) != OPERATION_SUCCESSFUL) {
         printf("保存商品信息失败! 请检查是否具有写入文件的权限.\n");
-        return false;
+        return FAIL_TO_WRITE_FILE;
 	}
-    return true;
+    return OPERATION_SUCCESSFUL;
 }
 
 /**
@@ -347,38 +369,24 @@ int AddGoods(Good good) {
 	}
     
 	bool GoodExist = false;
-    for (int i = 0; i < GoodsCount; i++) {
-       if (strcmp(goods[i].name, good.name) == 0) {
-           if (strcmp(goods[i].factory, good.factory) == 0 && 
-               strcmp(goods[i].brand, good.brand) == 0 &&
-               goods[i].price == good.price &&
-               goods[i].type == good.type) {
-               // 商品已存在 更新价格和剩余数量
-               goods[i].remaining += good.remaining; // 累加剩余数量
-               GoodExist = true;
-               break;
-		   }
-           else {
-                // printf("商品 '%s' 已存在但信息不同! 请检查输入的商品信息是否正确.\n", good.name);
-				return REPEAT_GOOD; // 不添加重复商品 直接返回成功
-           }
-           break;
-       }
-   }
-
-   if (!GoodExist) {
-		// 商品不存在 添加新商品
-        strcpy(goods[GoodsCount].name, good.name);
-        goods[GoodsCount].price = good.price;
-        goods[GoodsCount].remaining = good.remaining;
-        goods[GoodsCount].type = good.type;
-        strcpy(goods[GoodsCount].factory, good.factory);
-        strcpy(goods[GoodsCount].brand, good.brand);
-		goods[GoodsCount].sign = GoodsCount + 1;
-        GoodsCount++;
+	Node* node = head;
+    while (node != NULL) {
+        if (GoodsEqual(&node->value, &good)) {
+            // 商品已存在 更新价格和剩余数量
+            node->value.remaining += good.remaining; // 累加剩余数量
+            GoodExist = true;
+            break;
+        }
+		node = node->next;
     }
 
-    if (SaveGoodsInfo() != OPERATION_SUCCESSFUL) {
+	// 商品不存在 则添加到链表中
+    if (!GoodExist) {
+        good.sign = GoodsCount + 1;
+        Insert(&head, good);
+    }
+	// free(node);
+    if (SaveGoodsInfo(head) != OPERATION_SUCCESSFUL) {
         // printf("保存商品信息失败! 请检查是否具有写入文件的权限.\n");
         return FAIL_TO_WRITE_FILE;
     }
@@ -395,20 +403,24 @@ int AddGoods(Good good) {
  */
 int DeleteGoods(const char* name){
 	bool GoodFound = false;
-    for (int i = 0; i < GoodsCount; i++) {
-        if (strcmp(name, goods[i].name) == 0) {
-			// 将剩余数量设置为0 来表示删除了这个商品 这样在查询和保存时 就会自动跳过这个商品了
-            goods[i].remaining = 0;
-			GoodFound = true;
+    
+	Node* node = head;
+    while (node != NULL) {
+        if (strcmp(node->value.name, name) == 0) {
+			node->value.remaining = 0;
+            Delete(head, node->value);
+            GoodFound = true;
+            break;
         }
+		node = node->next;
     }
-	if (SaveGoodsInfo() != OPERATION_SUCCESSFUL) {
-        printf("保存商品信息失败! 请检查是否具有写入文件的权限.\n");
+
+	if (SaveGoodsInfo(head) != OPERATION_SUCCESSFUL) {
         return FAIL_TO_WRITE_FILE;
 	}
 
+    // free(node);
     if (!GoodFound) {
-        printf("商品不存在!\n");
         return NO_VALID_DATA;
 	}
 	return OPERATION_SUCCESSFUL;
@@ -430,7 +442,6 @@ void GoodsCopy(Good* dst, const Good src) {
 bool GoodsEqual(const Good* a, const Good* b) {
     return strcmp(a->name, b->name) == 0 &&
         a->price == b->price &&
-        a->remaining == b->remaining &&
         strcmp(a->factory, b->factory) == 0 &&
         strcmp(a->brand, b->brand) == 0 &&
         a->type == b->type;
