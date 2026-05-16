@@ -22,7 +22,7 @@ Node* head = NULL; // 商品链表的头指针
 // 删除换行符 以便使用 fgets 函数
 #define REMOVELINEFEED while (getchar() != '\n')
 
-void Init() {
+int Init() {
     /* --------- 申请内存 ---------*/
     AccountName = (char*) malloc(100 * sizeof(char));
     Password = (char*) malloc(100 * sizeof(char));
@@ -31,10 +31,17 @@ void Init() {
     GoodsCount = 0;
 	memset(goods, 0, GOODS_MAX * sizeof(Good));
 	memset(account, 0, 100 * sizeof(Account));
+
+	if (AccountName == NULL || Password == NULL) {
+        printf("内存分配失败!\n");
+        return false;
+	}
+    
     memset(AccountName, 0, 100 * sizeof(char));
     memset(Password, 0, 100 * sizeof(char));
     GetAccountInfo();
     IsAdmin = false;
+    return true;
 }
 
 int Login() {
@@ -79,7 +86,10 @@ int Login() {
 }
 
 int main() {
-    Init();
+    if (!Init()) {
+        printf("内存申请失败! 请检查操作系统内存剩余! 系统即将退出...\n");
+        return EXIT_FAILURE;
+    }
 
     // <------------------- 登录 ------------------->
     int LoginRes = Login();
@@ -192,10 +202,6 @@ OPERATION:
                     break;
 				}
 
-                printf("请输入旧密码：");
-				GetAccountPassword(TempAccount.password);
-                printf("\n");
-
 				bool VerifyPassed = false;
 
                 for (int i = 0; i < AccountCount; i++) {
@@ -204,12 +210,6 @@ OPERATION:
                     toLower(storedName);
                     
                     if (strcmp(storedName, LAccountName) == 0) {
-                        if (strcmp(account[i].password, TempAccount.password) != 0) {
-                            // 密码错误
-                            printf("密码错误!\n");
-                            return EXIT_FAILURE;
-                        }
-                        strcpy(account[i].password, TempAccount.password);
                         VerifyPassed = true;
                         break;
                     }
@@ -219,6 +219,14 @@ OPERATION:
                     printf("账号不存在!\n");
                     break;
 				}
+
+                char Confirm = '\0';
+                printf("是否确定重置 %s 账号的密码? (y/n) ", TempAccount.accountName);
+                Confirm = getchar();
+                if (Confirm != 'Y' && Confirm != 'y') {
+                    printf("重置 %s 账号的密码操作已取消!\n", TempAccount.accountName);
+                    break;
+                }
 
                 printf("\n");
 				// 验证通过 允许修改密码
@@ -704,7 +712,7 @@ OPERATION:
                             continue;
                         }
 
-                        if (node->value.remaining >= low && node->value.remaining <= high) {
+                        if (node->value.remaining >= (unsigned int)low && node->value.remaining <= (unsigned int)high) {
                             passGoods[passCount].sign = node->value.sign;
                             passGoods[passCount].price = node->value.price;
                             strcpy(passGoods[passCount].name, node->value.name);

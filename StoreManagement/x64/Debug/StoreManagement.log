@@ -1,4 +1,2 @@
 ﻿  main.c
-D:\Executive\vs\StoreManagement\StoreManagement\main.c(707,51): warning C4018: “>=”: 有符号/无符号不匹配
-D:\Executive\vs\StoreManagement\StoreManagement\main.c(707,83): warning C4018: “<=”: 有符号/无符号不匹配
   StoreManagement.vcxproj -> D:\Executive\vs\StoreManagement\x64\Debug\StoreManagement.exe
